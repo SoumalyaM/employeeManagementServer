@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Employee {
+  empNo     Int      @id @map("emp_no")
+  birthDate DateTime @map("birth_date") @db.Date
+  firstName String   @map("first_name") @db.VarChar(14)
+  lastName  String   @map("last_name") @db.VarChar(16)
+  gender    Gender
+  hireDate  DateTime @map("hire_date") @db.Date
+
+  deptEmp    DeptEmp[]
+  salaries   Salary[]
+  titles     Title[]
+  deptManager DeptManager[]
+
+  @@map("employees")
+}
+
+model Department {
+  deptNo   String @id @map("dept_no") @db.Char(4)
+  deptName String @unique @map("dept_name") @db.VarChar(40)
+
+  deptEmp     DeptEmp[]
+  deptManager DeptManager[]
+
+  @@map("departments")
+}
+
+model DeptEmp {
+  empNo    Int        @map("emp_no")
+  deptNo   String     @map("dept_no") @db.Char(4)
+  fromDate DateTime   @map("from_date") @db.Date
+  toDate   DateTime   @map("to_date") @db.Date
+
+  employee   Employee   @relation(fields: [empNo], references: [empNo])
+  department Department @relation(fields: [deptNo], references: [deptNo])
+
+  @@id([empNo, deptNo])
+  @@map("dept_emp")
+}
+
+model DeptManager {
+  empNo    Int        @map("emp_no")
+  deptNo   String     @map("dept_no") @db.Char(4)
+  fromDate DateTime   @map("from_date") @db.Date
+  toDate   DateTime   @map("to_date") @db.Date
+
+  employee   Employee   @relation(fields: [empNo], references: [empNo])
+  department Department @relation(fields: [deptNo], references: [deptNo])
+
+  @@id([empNo, deptNo])
+  @@map("dept_manager")
+}
+
+model Salary {
+  empNo    Int      @map("emp_no")
+  salary   Int
+  fromDate DateTime @map("from_date") @db.Date
+  toDate   DateTime @map("to_date") @db.Date
+
+  employee Employee @relation(fields: [empNo], references: [empNo])
+
+  @@id([empNo, fromDate])
+  @@map("salaries")
+}
+
+model Title {
+  empNo    Int       @map("emp_no")
+  title    String    @db.VarChar(50)
+  fromDate DateTime  @map("from_date") @db.Date
+  toDate   DateTime? @map("to_date") @db.Date
+
+  employee Employee @relation(fields: [empNo], references: [empNo])
+
+  @@id([empNo, title, fromDate])
+  @@map("titles")
+}
+
+enum Gender {
+  M
+  F
+}
